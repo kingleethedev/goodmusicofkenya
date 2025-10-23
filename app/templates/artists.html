@@ -1,0 +1,163 @@
+<!-- app/templates/artists.html -->
+{% extends "base.html" %}
+
+{% block title %}Kenyan Artists - Good Music KE{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="display-5 fw-bold">Kenyan Artists</h1>
+            <span class="badge bg-dark fs-6">
+                {% if artists %}
+                    {{ artists|length }} artists
+                {% else %}
+                    0 artists
+                {% endif %}
+            </span>
+        </div>
+        
+        <!-- Search Box -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search artists..." id="artistSearch">
+                    <button class="btn btn-outline-dark" type="button" onclick="searchArtists()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Artists Grid -->
+<div class="row" id="artistsGrid">
+    {% if artists %}
+        {% for artist_data in artists %}
+            <!-- Handle both tuple (artist, count) and simple artist object -->
+            {% if artist_data is iterable and artist_data is not string and artist_data|length == 2 %}
+                {% set artist = artist_data[0] %}
+                {% set song_count = artist_data[1] %}
+            {% else %}
+                {% set artist = artist_data %}
+                {% set song_count = artist.songs|length %}
+            {% endif %}
+            
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4 artist-item">
+                <div class="card artist-card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="artist-avatar mb-3 mx-auto" 
+                             style="width: 100px; height: 100px; 
+                                    background: linear-gradient(45deg, #{{ '%06x' % (artist.id * 123456 % 0xFFFFFF) }}, #{{ '%06x' % (artist.id * 654321 % 0xFFFFFF) }}); 
+                                    border-radius: 50%; 
+                                    display: flex; 
+                                    align-items: center; 
+                                    justify-content: center; 
+                                    color: white; 
+                                    font-weight: bold; 
+                                    font-size: 2rem;">
+                            {{ artist.name[0] }}
+                        </div>
+                        <h5 class="card-title">
+                            <a href="{{ url_for('main.artist_songs', name=artist.name) }}" 
+                               class="text-decoration-none text-dark">
+                                {{ artist.name }}
+                            </a>
+                        </h5>
+                        <p class="card-text">
+                            <span class="badge bg-dark">{{ song_count }} song{% if song_count != 1 %}s{% endif %}</span>
+                            {% if artist.is_verified %}
+                            <span class="badge bg-success ms-1">
+                                <i class="fas fa-check-circle"></i> Verified
+                            </span>
+                            {% endif %}
+                        </p>
+                        {% if artist.genre %}
+                        <p class="card-text">
+                            <small class="text-muted">{{ artist.genre }}</small>
+                        </p>
+                        {% endif %}
+                        <a href="{{ url_for('main.artist_songs', name=artist.name) }}" 
+                           class="btn btn-outline-dark btn-sm">
+                            View Songs <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info text-center py-5">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <h4>No Artists Found</h4>
+            <p class="mb-3">There are no artists in the database yet.</p>
+            <button class="btn btn-dark" onclick="updateSongs()">
+                <i class="fas fa-sync-alt me-2"></i> Update Songs to Discover Artists
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.artist-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid var(--lighter-gray);
+}
+
+.artist-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.artist-avatar {
+    transition: transform 0.3s ease;
+}
+
+.artist-card:hover .artist-avatar {
+    transform: scale(1.1);
+}
+</style>
+
+<script>
+function searchArtists() {
+    const searchTerm = document.getElementById('artistSearch').value.toLowerCase();
+    const artistItems = document.querySelectorAll('.artist-item');
+    
+    let visibleCount = 0;
+    
+    artistItems.forEach(item => {
+        const artistName = item.querySelector('.card-title').textContent.toLowerCase();
+        if (artistName.includes(searchTerm)) {
+            item.style.display = 'block';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    // Update the counter
+    const badge = document.querySelector('.badge.bg-dark.fs-6');
+    if (badge && searchTerm) {
+        badge.textContent = `${visibleCount} of {{ artists|length }} artists`;
+    } else if (badge) {
+        badge.textContent = '{{ artists|length }} artists';
+    }
+}
+
+// Enable search on Enter key
+document.getElementById('artistSearch').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        searchArtists();
+    }
+});
+
+// Clear search when input is cleared
+document.getElementById('artistSearch').addEventListener('input', function(e) {
+    if (this.value === '') {
+        searchArtists();
+    }
+});
+</script>
+{% endblock %}

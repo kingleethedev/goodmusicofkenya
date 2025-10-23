@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Discover Kenyan Music{% endblock %}
+
+{% block content %}
+<!-- Hero Stats Section -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="stats-section text-center">
+            <div class="row">
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="stat-number">{{ total_songs }}</div>
+                    <div class="stat-label">Songs</div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="stat-number">{{ total_artists }}</div>
+                    <div class="stat-label">Artists</div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="stat-number">{{ new_this_week }}</div>
+                    <div class="stat-label">New This Week</div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Updated</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- About Section -->
+<div class="row mb-5">
+    <div class="col-lg-8 mx-auto text-center">
+        <h1 class="display-5 fw-bold mb-4">Discover the Heartbeat of Kenyan Music</h1>
+        <p class="lead text-muted mb-4">
+            Welcome to Kenya's premier music discovery platform. We bring you the latest and greatest 
+            from the vibrant Kenyan music scene, updated daily with fresh content from YouTube's top channels.
+        </p>
+        <div class="row g-4 mt-4">
+            <div class="col-md-4">
+                <div class="feature-card p-4 border rounded">
+                    <i class="fas fa-sync-alt fa-2x text-dark mb-3"></i>
+                    <h5>Auto-Updated</h5>
+                    <p class="text-muted small">Fresh content daily from YouTube's latest Kenyan music releases</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card p-4 border rounded">
+                    <i class="fas fa-filter fa-2x text-dark mb-3"></i>
+                    <h5>Verified Content</h5>
+                    <p class="text-muted small">Only official music from verified Kenyan artists and channels</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card p-4 border rounded">
+                    <i class="fas fa-music fa-2x text-dark mb-3"></i>
+                    <h5>All Genres</h5>
+                    <p class="text-muted small">From Gengetone to Gospel, Afro-pop to Benga - we cover it all</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="section-header">
+            <h2 class="section-title">How It Works</h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="d-flex">
+                    <div class="flex-shrink-0">
+                        <span class="badge bg-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">1</span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5>Smart Searching</h5>
+                        <p class="text-muted mb-0">Our system automatically searches YouTube for the latest Kenyan music using intelligent queries.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="d-flex">
+                    <div class="flex-shrink-0">
+                        <span class="badge bg-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">2</span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5>Quality Filtering</h5>
+                        <p class="text-muted mb-0">We verify each track for quality, ensuring only official music from Kenyan artists.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="d-flex">
+                    <div class="flex-shrink-0">
+                        <span class="badge bg-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">3</span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5>Instant Access</h5>
+                        <p class="text-muted mb-0">Enjoy seamless streaming directly from YouTube with our curated music library.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Artists Section -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="section-header">
+            <h2 class="section-title">Featured Artists</h2>
+            <a href="{{ url_for('main.artists_list') }}" class="btn btn-outline-dark">View All Artists</a>
+        </div>
+        <div class="row">
+            {% for artist in featured_artists %}
+            <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-3 text-center">
+                <div class="artist-card p-3 border rounded">
+                    <div class="artist-avatar mb-2 mx-auto" style="width: 80px; height: 80px; background: linear-gradient(45deg, #{{ '%06x' % (artist.id * 123456 % 0xFFFFFF) }}, #{{ '%06x' % (artist.id * 654321 % 0xFFFFFF) }}); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.5rem;">
+                        {{ artist.name[0] }}
+                    </div>
+                    <h6 class="mb-1">{{ artist.name[:15] }}{% if artist.name|length > 15 %}...{% endif %}</h6>
+                    <small class="text-muted">{{ artist.songs|length }} songs</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Latest Songs Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="section-header">
+            <h2 class="section-title">Latest Additions</h2>
+            <a href="{{ url_for('main.latest_songs') }}" class="btn btn-outline-dark">View All Songs</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {% for song in latest_songs %}
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+        <div class="card album-card shadow-sm">
+            <div class="position-relative">
+                <img src="{{ song.image_url or song.thumbnail_url or '/static/images/default_album.jpg' }}" 
+                     class="card-img-top album-image" 
+                     alt="{{ song.title }}"
+                     onerror="this.src='/static/images/default_album.jpg'">
+                <a href="{{ song.youtube_url }}" target="_blank" class="play-btn btn btn-danger btn-lg">
+                    <i class="fas fa-play"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">{{ song.title[:50] }}{% if song.title|length > 50 %}...{% endif %}</h6>
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="fas fa-user"></i> 
+                        <a href="{{ url_for('main.artist_songs', name=song.artist.name) }}" class="text-decoration-none">
+                            {{ song.artist.name }}
+                        </a>
+                    </small>
+                </p>
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="fas fa-calendar"></i> {{ song.release_date.strftime('%b %d, %Y') }}
+                    </small>
+                </p>
+                {% if song.view_count %}
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="fas fa-eye"></i> {{ "{:,}".format(song.view_count) }} views
+                    </small>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <h4>Welcome to Kenyan Music Discovery! 🎵</h4>
+            <p class="mb-3">We're ready to bring you the latest Kenyan music from YouTube.</p>
+            <div class="mt-3">
+                <button class="btn btn-dark me-2" onclick="updateSongs()">
+                    <i class="fas fa-sync-alt me-2"></i>Get Started - Update Songs
+                </button>
+                <small class="d-block text-muted mt-2">This will search YouTube for the latest Kenyan music releases</small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Call to Action -->
+{% if latest_songs %}
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="alert alert-dark text-center">
+            <h4>Want More Music?</h4>
+            <p class="mb-3">Our database is constantly updated with new Kenyan music releases.</p>
+            <div class="btn-group">
+                <button class="btn btn-outline-dark" onclick="updateSongs()">
+                    <i class="fas fa-sync-alt me-2"></i>Update Songs Now
+                </button>
+                <a href="{{ url_for('main.latest_songs') }}" class="btn btn-dark">
+                    <i class="fas fa-list me-2"></i>Browse All Songs
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.feature-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: var(--white);
+    border: 1px solid var(--lighter-gray) !important;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.artist-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: var(--white);
+    border: 1px solid var(--lighter-gray) !important;
+}
+
+.artist-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.artist-avatar {
+    transition: transform 0.3s ease;
+}
+
+.artist-card:hover .artist-avatar {
+    transform: scale(1.1);
+}
+
+.display-5 {
+    color: var(--black);
+    font-weight: 700;
+}
+
+.lead {
+    font-size: 1.25rem;
+    color: var(--light-gray);
+}
+
+.badge.bg-dark {
+    background-color: var(--black) !important;
+}
+
+.alert-dark {
+    background-color: var(--accent);
+    border-color: var(--lighter-gray);
+    color: var(--black);
+}
+</style>
+{% endblock %}

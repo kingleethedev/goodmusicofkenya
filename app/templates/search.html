@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Search - Kenyan Music Discovery{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Search Results</h1>
+        {% if query %}
+        <p class="text-muted">Showing results for "{{ query }}"</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    {% for song in songs.items %}
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+        <div class="card album-card shadow-sm">
+            <div class="position-relative">
+                <img src="{{ song.image_url or song.thumbnail_url or '/static/images/default_album.jpg' }}" 
+                     class="card-img-top album-image" 
+                     alt="{{ song.title }}"
+                     onerror="this.src='/static/images/default_album.jpg'">
+                <a href="{{ song.youtube_url }}" target="_blank" class="play-btn btn btn-danger btn-lg">
+                    <i class="fas fa-play"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">{{ song.title[:50] }}{% if song.title|length > 50 %}...{% endif %}</h6>
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="fas fa-user"></i> 
+                        <a href="{{ url_for('main.artist_songs', name=song.artist.name) }}" class="text-decoration-none">
+                            {{ song.artist.name }}
+                        </a>
+                    </small>
+                </p>
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="fas fa-calendar"></i> {{ song.release_date.strftime('%b %d, %Y') }}
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h4>No songs found!</h4>
+            {% if query %}
+            <p>No results found for "{{ query }}". Try different keywords.</p>
+            {% else %}
+            <p>Use the search bar to find songs or artists.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if songs.pages > 1 %}
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if songs.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('main.search_songs', q=query, page=songs.prev_num) }}">Previous</a>
+        </li>
+        {% endif %}
+        
+        {% for page_num in songs.iter_pages() %}
+            {% if page_num %}
+                <li class="page-item {% if page_num == songs.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.search_songs', q=query, page=page_num) }}">{{ page_num }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if songs.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('main.search_songs', q=query, page=songs.next_num) }}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

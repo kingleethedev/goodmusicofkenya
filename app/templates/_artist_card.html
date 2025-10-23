@@ -1,0 +1,31 @@
+<!-- app/templates/_artist_card.html -->
+<div class="col-lg-3 col-md-4 col-sm-6 mb-4 artist-item">
+    <div class="card artist-card h-100 shadow-sm">
+        <div class="card-body text-center">
+            <div class="artist-avatar mb-3 mx-auto" style="width: 100px; height: 100px; background: linear-gradient(45deg, #{{ '%06x' % (artist.id * 123456 % 0xFFFFFF) }}, #{{ '%06x' % (artist.id * 654321 % 0xFFFFFF) }}); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 2rem;">
+                {{ artist.name[0] }}
+            </div>
+            <h5 class="card-title">
+                <a href="{{ url_for('main.artist_songs', name=artist.name) }}" class="text-decoration-none text-dark">
+                    {{ artist.name }}
+                </a>
+            </h5>
+            <p class="card-text">
+                <span class="badge bg-dark">{{ song_count }} songs</span>
+                {% if artist.is_verified is defined and artist.is_verified %}
+                <span class="badge bg-success ms-1">
+                    <i class="fas fa-check-circle"></i> Verified
+                </span>
+                {% endif %}
+            </p>
+            {% if artist.genre %}
+            <p class="card-text">
+                <small class="text-muted">{{ artist.genre }}</small>
+            </p>
+            {% endif %}
+            <a href="{{ url_for('main.artist_songs', name=artist.name) }}" class="btn btn-outline-dark btn-sm">
+                View Songs <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,37 @@
+<!-- app/templates/_song_card.html -->
+<div class="card album-card shadow-sm">
+    <div class="position-relative">
+        <img src="{{ song.image_url or song.thumbnail_url or '/static/images/default_album.jpg' }}" 
+             class="card-img-top album-image" 
+             alt="{{ song.title }}"
+             onerror="this.src='/static/images/default_album.jpg'">
+        <a href="{{ song.youtube_url }}" target="_blank" class="play-btn btn btn-danger btn-lg">
+            <i class="fas fa-play"></i>
+        </a>
+        {% if song.is_explicit %}
+        <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">E</span>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <h6 class="card-title">{{ song.title }}</h6>
+        <p class="card-text">
+            <small class="text-muted">
+                <i class="fas fa-calendar"></i> {{ song.release_date.strftime('%b %d, %Y') }}
+            </small>
+        </p>
+        {% if song.view_count %}
+        <p class="card-text">
+            <small class="text-muted">
+                <i class="fas fa-eye"></i> {{ "{:,}".format(song.view_count) }} views
+            </small>
+        </p>
+        {% endif %}
+        {% if song.duration %}
+        <p class="card-text">
+            <small class="text-muted">
+                <i class="fas fa-clock"></i> {{ song.duration }}
+            </small>
+        </p>
+        {% endif %}
+    </div>
+</div>

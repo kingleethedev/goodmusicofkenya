@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Trending Kenyan Songs{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Trending Kenyan Songs</h1>
+        <p class="text-muted">Most viewed songs</p>
+    </div>
+</div>
+
+<div class="row">
+    {% for song in songs.items %}
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+        <div class="card album-card shadow-sm">
+            <div class="position-relative">
+                <img src="{{ song.image_url or song.thumbnail_url or '/static/images/default_album.jpg' }}" 
+                     class="card-img-top album-image" 
+                     alt="{{ song.title }}"
+                     onerror="this.src='/static/images/default_album.jpg'">
+                <a href="{{ song.youtube_url }}" target="_blank" class="play-btn btn btn-danger btn-lg">
+                    <i class="fas fa-play"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">{{ song.title[:50] }}{% if song.title|length > 50 %}...{% endif %}</h6>
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="fas fa-user"></i> 
+                        <a href="{{ url_for('main.artist_songs', name=song.artist.name) }}" class="text-decoration-none">
+                            {{ song.artist.name }}
+                        </a>
+                    </small>
+                </p>
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="fas fa-calendar"></i> {{ song.release_date.strftime('%b %d, %Y') }}
+                    </small>
+                </p>
+                {% if song.view_count %}
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="fas fa-eye"></i> {{ "{:,}".format(song.view_count) }} views
+                    </small>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h4>No trending songs found!</h4>
+            <p>Click "Update Songs" to fetch Kenyan music.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if songs.pages > 1 %}
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if songs.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('main.trending', page=songs.prev_num) }}">Previous</a>
+        </li>
+        {% endif %}
+        
+        {% for page_num in songs.iter_pages() %}
+            {% if page_num %}
+                <li class="page-item {% if page_num == songs.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.trending_songs', page=page_num) }}">{{ page_num }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if songs.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('main.trending_songs', page=songs.next_num) }}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

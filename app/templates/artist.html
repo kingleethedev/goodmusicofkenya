@@ -1,0 +1,509 @@
+<!-- app/templates/artist.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ artist.name | e }} - Kenyan Artist | Good Music KE{% endblock %}
+
+{% block og_title %}{{ artist.name | e }} - Kenyan Artist | Good Music KE{% endblock %}
+{% block og_description %}{% if artist.description %}{{ artist.description|truncate(200) }}{% else %}Discover {{ artist.name | e }}, a talented Kenyan artist with {{ artist.songs|length }} songs{% endif %}{% endblock %}
+{% block og_image %}{% if artist.songs and artist.songs[0].image_url %}{{ artist.songs[0].image_url }}{% else %}{{ url_for('static', filename='images/logo.png', _external=True) }}{% endif %}{% endblock %}
+
+{% block twitter_title %}{{ artist.name | e }} - Kenyan Artist{% endblock %}
+{% block twitter_description %}{% if artist.description %}{{ artist.description|truncate(150) }}{% else %}🎵 {{ artist.name | e }} - Kenyan Music Artist{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <!-- Artist Header -->
+        <div class="artist-header d-flex align-items-center mb-4 p-4 rounded" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div class="flex-shrink-0">
+                <div class="artist-avatar me-4" style="width: 120px; height: 120px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 3rem; border: 4px solid rgba(255,255,255,0.3);">
+                    {{ artist.name[0] }}
+                </div>
+            </div>
+            <div class="flex-grow-1">
+                <h1 class="display-6 fw-bold mb-2">{{ artist.name | e }}</h1>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-light text-dark">
+                        <i class="fas fa-music me-1"></i>
+                        {% if songs %}
+                            {{ songs.total }} songs
+                        {% else %}
+                            {{ artist.songs|length }} songs
+                        {% endif %}
+                    </span>
+                    {% if artist.genre %}
+                    <span class="badge bg-light text-dark">
+                        <i class="fas fa-tag me-1"></i>{{ artist.genre | e }}
+                    </span>
+                    {% endif %}
+                    {% if artist.is_verified %}
+                    <span class="badge bg-success">
+                        <i class="fas fa-check-circle me-1"></i>Verified Artist
+                    </span>
+                    {% endif %}
+                    <span class="badge bg-light text-dark">
+                        <i class="fas fa-map-marker-alt me-1"></i>Kenya
+                    </span>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-light btn-sm" onclick="generateDescription()" id="generateDescBtn">
+                        <i class="fas fa-robot me-1"></i> Generate AI Bio
+                    </button>
+                    <a href="{{ url_for('main.artists_list') }}" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> All Artists
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Artist Description -->
+        <div class="artist-description mb-4">
+            {% if artist.description %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info-circle me-2"></i>About {{ artist.name | e }}
+                        </h5>
+                        <button class="btn btn-outline-dark btn-sm" onclick="generateDescription()">
+                            <i class="fas fa-redo me-1"></i> Regenerate
+                        </button>
+                    </div>
+                    <p class="card-text" style="line-height: 1.6;">{{ artist.description | e }}</p>
+                    <small class="text-muted">
+                        <i class="fas fa-robot me-1"></i> AI-generated biography
+                    </small>
+                </div>
+            </div>
+            {% else %}
+            <div class="card border-0 bg-light">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-robot fa-3x text-muted mb-3"></i>
+                    <h5>No Biography Available</h5>
+                    <p class="text-muted mb-3">Generate an AI-powered biography for this artist</p>
+                    <button class="btn btn-dark" onclick="generateDescription()" id="generateDescBtn">
+                        <i class="fas fa-magic me-1"></i> Generate AI Biography
+                    </button>
+                    <p class="small text-muted mt-2">Powered by Google Gemini AI</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        
+    <!-- Social Media Sharing Section - FIXED -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-share-alt me-2"></i>Share This Artist
+                </h5>
+                <div class="d-flex flex-wrap gap-2" id="shareButtons">
+                    <!-- Twitter/X -->
+                    <button class="btn btn-outline-primary btn-sm share-btn" data-platform="twitter">
+                        <i class="fab fa-twitter me-1"></i> Twitter
+                    </button>
+                    
+                    <!-- Facebook -->
+                    <button class="btn btn-outline-primary btn-sm share-btn" data-platform="facebook">
+                        <i class="fab fa-facebook me-1"></i> Facebook
+                    </button>
+                    
+                    <!-- WhatsApp -->
+                    <button class="btn btn-outline-success btn-sm share-btn" data-platform="whatsapp">
+                        <i class="fab fa-whatsapp me-1"></i> WhatsApp
+                    </button>
+                    
+                    <!-- Copy Link -->
+                    <button class="btn btn-outline-secondary btn-sm" id="copyLinkBtn">
+                        <i class="fas fa-link me-1"></i> Copy Link
+                    </button>
+                </div>
+                
+                <!-- Share Preview - FIXED (no external image) -->
+                <div class="mt-3 p-3 border rounded bg-light d-none" id="sharePreview">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ artist.name | e }} - Kenyan Artist</h6>
+                            <p class="text-muted small mb-1">
+                                {% if artist.description %}
+                                    {{ artist.description|truncate(150) | e }}
+                                {% else %}
+                                    Discover the music of {{ artist.name | e }}, a talented Kenyan artist on Good Music KE.
+                                {% endif %}
+                            </p>
+                            <small class="text-muted">🎵 Good Music KE - Celebrating Kenyan Talent</small>
+                        </div>
+                        <div class="flex-shrink-0 ms-3" style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">
+                            GM
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <!-- Quick Stats - FIXED VERSION -->
+        {% if artist.songs and artist.songs|length > 0 %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="stats-section">
+                    <div class="row text-center">
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-number">{{ artist.songs|length }}</div>
+                            <div class="stat-label">Total Songs</div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            {% set recent_count = 0 %}
+                            {% for song in artist.songs %}
+                                {% if song.release_date %}
+                                    {% set days_ago = (now().date() - song.release_date.date()).days %}
+                                    {% if days_ago <= 30 %}
+                                        {% set recent_count = recent_count + 1 %}
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                            <div class="stat-number">{{ recent_count }}</div>
+                            <div class="stat-label">Last 30 Days</div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            {% set max_views = 0 %}
+                            {% for song in artist.songs %}
+                                {% if song.view_count and song.view_count > max_views %}
+                                    {% set max_views = song.view_count %}
+                                {% endif %}
+                            {% endfor %}
+                            <div class="stat-number">{{ "{:,}".format(max_views) }}</div>
+                            <div class="stat-label">Most Views</div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            {% set latest_date = none %}
+                            {% for song in artist.songs %}
+                                {% if song.release_date %}
+                                    {% if not latest_date or song.release_date > latest_date %}
+                                        {% set latest_date = song.release_date %}
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                            <div class="stat-number">
+                                {% if latest_date %}
+                                    {{ latest_date.strftime('%b %Y') }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div class="stat-label">Latest Release</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Songs Section -->
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-music me-2"></i>Discography
+            </h2>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-dark fs-6">
+                    {% if songs %}
+                        {{ songs.total }} songs
+                    {% else %}
+                        {{ artist.songs|length }} songs
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Songs Grid -->
+<div class="row" id="songsGrid">
+    {% if songs and songs.items %}
+        {% for song in songs.items %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            {% include '_song_card.html' %}
+        </div>
+        {% endfor %}
+    {% elif artist.songs and artist.songs|length > 0 %}
+        {% for song in artist.songs %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            {% include '_song_card.html' %}
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <h4>No songs found for {{ artist.name | e }}</h4>
+            <p>This artist doesn't have any songs in our database yet.</p>
+            <button class="btn btn-dark mt-2" onclick="updateSongs()">
+                <i class="fas fa-sync-alt me-1"></i> Update Songs
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Pagination -->
+{% if songs and songs.pages > 1 %}
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if songs.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('main.artist_songs', name=artist.name, page=songs.prev_num) }}">Previous</a>
+        </li>
+        {% endif %}
+        
+        {% for page_num in songs.iter_pages() %}
+            {% if page_num %}
+                <li class="page-item {% if page_num == songs.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.artist_songs', name=artist.name, page=page_num) }}">{{ page_num }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if songs.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('main.artist_songs', name=artist.name, page=songs.next_num) }}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<style>
+.artist-header {
+    backdrop-filter: blur(10px);
+}
+
+.artist-avatar {
+    transition: transform 0.3s ease;
+}
+
+.artist-avatar:hover {
+    transform: scale(1.05);
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.loading {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+    // Social Media Sharing Functions - CORRECTED
+    function setupSocialSharing() {
+        const shareButtons = document.querySelectorAll('.share-btn');
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        const sharePreview = document.getElementById('sharePreview');
+        
+        // Current page URL and title
+        const currentUrl = window.location.href;
+        const artistName = "{{ artist.name | e }}";
+        
+        // Prepare share text
+        let shareText = `Check out ${artistName}, a talented Kenyan artist!`;
+        
+        if ("{{ artist.description }}".length > 0) {
+            const shortDesc = "{{ artist.description | truncate(100) | e }}";
+            shareText = `🎵 ${artistName} - ${shortDesc} Discover more Kenyan music at Good Music KE!`;
+        }
+        
+        // Social media URLs - CORRECTED
+        const shareUrls = {
+            twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(currentUrl)}`,
+            facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`,
+            linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`,
+            whatsapp: `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + currentUrl)}`,
+            telegram: `https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(shareText)}`
+        };
+        
+        // Set up share buttons
+        shareButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const platform = this.dataset.platform;
+                const shareUrl = shareUrls[platform];
+                
+                if (shareUrl) {
+                    // Show preview before sharing
+                    sharePreview.classList.remove('d-none');
+                    
+                    // Open share window
+                    const width = 600;
+                    const height = 400;
+                    const left = (window.screen.width - width) / 2;
+                    const top = (window.screen.height - height) / 2;
+                    
+                    window.open(shareUrl, '_blank', `width=${width},height=${height},left=${left},top=${top}`);
+                    
+                    console.log(`Shared ${artistName} on ${platform}`);
+                }
+            });
+        });
+        
+        // Copy link functionality
+        copyLinkBtn.addEventListener('click', function() {
+            const url = window.location.href;
+            
+            // Fallback for older browsers
+            if (!navigator.clipboard) {
+                fallbackCopyTextToClipboard(url);
+                return;
+            }
+            
+            navigator.clipboard.writeText(url).then(() => {
+                // Show success feedback
+                showButtonSuccess(this, 'Copied!');
+                showToast('Link copied to clipboard!', 'success');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                fallbackCopyTextToClipboard(url);
+            });
+        });
+        
+        // Fallback copy method for older browsers
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast('Link copied to clipboard!', 'success');
+                } else {
+                    showToast('Failed to copy link', 'error');
+                }
+            } catch (err) {
+                console.error('Fallback copy failed: ', err);
+                showToast('Failed to copy link', 'error');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+    }
+    
+    // Show button success state
+    function showButtonSuccess(button, successText) {
+        const originalText = button.innerHTML;
+        const originalClass = button.className;
+        
+        button.innerHTML = `<i class="fas fa-check me-1"></i> ${successText}`;
+        button.className = originalClass.replace('btn-outline-secondary', 'btn-success');
+        button.disabled = true;
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.className = originalClass;
+            button.disabled = false;
+        }, 2000);
+    }
+    
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        // Remove existing toasts
+        const existingToasts = document.querySelectorAll('.custom-toast');
+        existingToasts.forEach(toast => toast.remove());
+        
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `custom-toast alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 250px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 3000);
+    }
+    
+    // Generate Description Function
+    function generateDescription() {
+        const btn = document.getElementById('generateDescBtn');
+        const originalHTML = btn.innerHTML;
+        
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Generating...';
+        btn.disabled = true;
+        
+        fetch(`/artist/{{ artist.name | e }}/generate-description`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showToast('Artist biography generated successfully!', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                throw new Error(data.message || 'Unknown error occurred');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error generating biography: ' + error.message, 'error');
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        });
+    }
+    
+    // Update Songs Function
+    function updateSongs() {
+        showToast('Song update feature coming soon!', 'info');
+    }
+    
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        setupSocialSharing();
+        console.log('Social sharing initialized');
+    });
+    </script>
+// ... rest of your JavaScript code
+</script>
+{% endblock %}

@@ -649,3 +649,29 @@ def generate_artist_card(name):
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+# In your routes.py or views.py
+from flask import current_app, render_template, request, flash, redirect, url_for, jsonify
+@main_bp.route('/artist/<name>')
+def artist_detail(name):
+    try:
+        artist = Artist.query.filter_by(name=name).first_or_404()
+        
+        # Ensure songs is never None - initialize as empty list if None
+        if artist.songs is None:
+            artist.songs = []
+            
+        # Paginate songs if there are any
+        page = request.args.get('page', 1, type=int)
+        if artist.songs:
+            songs = Song.query.filter_by(artist_id=artist.id).order_by(
+                Song.release_date.desc()
+            ).paginate(page=page, per_page=12, error_out=False)
+        else:
+            songs = None
+            
+        return render_template('artist.html', artist=artist, songs=songs)
+        
+    except Exception as e:
+        current_app.logger.error(f"Error loading artist {name}: {str(e)}")
+        flash('Error loading artist profile', 'error')
+        return redirect(url_for('main.artists_list'))
